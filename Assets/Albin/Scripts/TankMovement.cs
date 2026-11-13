@@ -14,7 +14,7 @@ public class TankMovement : MonoBehaviour
 
     [SerializeField]
     private float moveSpeed = 20f;
-    private float maxAngle = 94f;
+    private float maxAngle = 90f;
     private float pitch = 0;
     [SerializeField]
     private float maxSpeed = 70f;
@@ -23,6 +23,11 @@ public class TankMovement : MonoBehaviour
     // Store the action references.
     InputAction moveAction;
     InputAction fireAction;
+    InputAction lockAction;
+
+    private bool holding = false;
+
+
 
     private void Start()
     {
@@ -30,6 +35,7 @@ public class TankMovement : MonoBehaviour
         moveAction = InputSystem.actions.FindAction("Move");
         raiseAction = InputSystem.actions.FindAction("Look");
         fireAction = InputSystem.actions.FindAction("Attack");
+        lockAction = InputSystem.actions.FindAction("Lock");
     }
 
     void FixedUpdate()
@@ -44,9 +50,12 @@ public class TankMovement : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
             transform.localRotation = Quaternion.identity;
         }
-
         Vector2 lookValue = raiseAction.ReadValue<Vector2>();
-        pitch = Mathf.Clamp(pitch += lookValue.y, 0, maxAngle);
+
+        if (!lockAction.IsPressed())
+        {
+            pitch = Mathf.Clamp(pitch += lookValue.y / 2f, 0, maxAngle);
+        }
 
         cannonSocket.transform.localRotation = Quaternion.Euler(-pitch,
             0f, 0f);
@@ -65,19 +74,23 @@ public class TankMovement : MonoBehaviour
         if (moveValue.x < 0) //Turn left
             transform.localRotation = Quaternion.Euler(transform.localRotation.eulerAngles.x, transform.localRotation.eulerAngles.y - 1f, transform.localRotation.eulerAngles.z);
 
-        bool holding = false;
-        if (fireAction.IsPressed())
+        cannon.currentCooldown = Mathf.Clamp(--cannon.currentCooldown, 0, 20);
+
+        if (fireAction.IsPressed() && (cannon.currentCooldown == 0))
         {
             if (!holding) //One click guard. 
             {
                 holding = true;
                 GameObject projectile;
-                projectile = Instantiate(cannon.projectile, cannon.projectileSpawn.transform.position, Quaternion.identity);
+
+                projectile = Instantiate(cannon.projectile, 
+                    cannon.projectileSpawn.transform.position, 
+                    Quaternion.LookRotation(cannonSocket.transform.forward, cannonSocket.transform.up));
+                cannon.currentCooldown = cannon.cooldown;
                 if(projectile.TryGetComponent<Rigidbody>(out var rb))
                 {
                     rb.AddForce(cannonSocket.transform.forward * cannon.firePower, ForceMode.Impulse);
                 }
-                Debug.Log("FIRE");
             }
         }
         else

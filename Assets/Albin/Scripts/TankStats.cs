@@ -2,20 +2,13 @@ using UnityEngine;
 
 public class TankStats : MonoBehaviour
 {
-
     [SerializeField]
     private float tankHealth = 100f;
 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void TakeDamage(float damage)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        tankHealth -= damage;
+        if (tankHealth <= 0)
+            gameObject.SetActive(false);
     }
 }

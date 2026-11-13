@@ -90,6 +90,16 @@
                     "name": "Sprint",
                     "type": "Button",
                     "id": "641cd816-40e6-41b4-8c3d-04687c349290",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Lock",
+                    "type": "PassThrough",
+                    "id": "f974b09d-e712-4027-b2ce-a6f1e42c186d",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -381,6 +391,17 @@
                     "processors": "",
                     "groups": "XR",
                     "action": "Sprint",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "545b6941-6abf-4024-b4f8-4f200882a294",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Lock",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
