@@ -14,6 +14,7 @@ namespace HelloWorld
         private void Awake()
         {
             m_NetworkManager = GetComponent<NetworkManager>();
+
         }
 
         private void OnGUI()

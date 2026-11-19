@@ -1,7 +1,8 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class TankMovement : MonoBehaviour
+public class TankMovement : NetworkBehaviour
 {
     [SerializeField]
     private GameObject cannonSocket;
@@ -27,8 +28,12 @@ public class TankMovement : MonoBehaviour
 
     private bool holding = false;
 
+    [SerializeField]
+    private Vector3 cameraOffset;
+
     private void Start()
     {
+        transform.position = GetRandomPositionOnPlane();
         // Find the references to the "Move" and "Jump" actions
         moveAction = InputSystem.actions.FindAction("Move");
         raiseAction = InputSystem.actions.FindAction("Look");
@@ -38,10 +43,25 @@ public class TankMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        if ((rb.linearVelocity.magnitude * 10f) > maxSpeed*3)
+        {
+            rb.linearVelocity = rb.linearVelocity*0.9f;
+        }
         // Read the "Move" action value, which is a 2D vector
         // and the "Jump" action state, which is a boolean value
+        if (!IsOwner)
+        return;
 
-        if(Vector3.Dot(transform.up, new Vector3(0f, 1f, 0f)) < 0.1f)
+        Camera mainCam = Camera.main;
+        Vector3 pos = transform.position + (-transform.forward) * cameraOffset.z;
+        pos.y = transform.position.y + 5;
+        mainCam.transform.position = pos;
+        mainCam.transform.LookAt(transform);
+        pos = mainCam.transform.position;
+        pos.y += 5;
+        mainCam.transform.position = pos;
+
+        if (Vector3.Dot(transform.up, new Vector3(0f, 1f, 0f)) < 0.1f)
         {
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 3f, transform.localPosition.z);
             rb.linearVelocity = Vector3.zero;
@@ -76,22 +96,42 @@ public class TankMovement : MonoBehaviour
 
         if (fireAction.IsPressed() && (cannon.currentCooldown == 0))
         {
-            if (!holding) //One click guard. 
+            if (!holding) //Holding guard. 
             {
                 holding = true;
-                GameObject projectile;
-
-                projectile = Instantiate(cannon.projectile, 
-                    cannon.projectileSpawn.transform.position, 
-                    Quaternion.LookRotation(cannonSocket.transform.forward, cannonSocket.transform.up));
+                FireRpc(cannon.projectileSpawn.transform.position,
+            Quaternion.LookRotation(cannonSocket.transform.forward, cannonSocket.transform.up), 
+            cannonSocket.transform.forward);
                 cannon.currentCooldown = cannon.cooldown;
-                if(projectile.TryGetComponent<Rigidbody>(out var rb))
-                {
-                    rb.AddForce(cannonSocket.transform.forward * cannon.firePower, ForceMode.Impulse);
-                }
             }
         }
         else
             holding = false;
+    }
+    [Rpc(SendTo.Server)]
+    public void FireRpc(Vector3 pos, Quaternion rot, Vector3 cannonForward)
+    {
+        GameObject projectile = cannon.projectile;
+
+        projectile = Instantiate(projectile, pos, rot);
+        projectile.GetComponent<NetworkObject>().Spawn();
+        if (projectile.TryGetComponent<Rigidbody>(out var rb))
+        {
+            rb.AddForce(cannonForward * cannon.firePower, ForceMode.Impulse);
+        }
+    }
+    
+    public void Respawn()
+    {
+        //TODO: Replace random position with spawn point list
+        transform.position = GetRandomPositionOnPlane();
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+    }
+
+    private Vector3 GetRandomPositionOnPlane()
+    {
+        return new Vector3(Random.Range(-30f, 30f), 5f, Random.Range(-30f, 30f));
     }
 }

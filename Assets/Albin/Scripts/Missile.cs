@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class Missile : MonoBehaviour
@@ -31,13 +32,14 @@ public class Missile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Explode();
+        ExplodeRpc();
     }
-
-    public void Explode()
+    [Rpc(SendTo.Server)]
+    public void ExplodeRpc()
     {
         //Debug.Log("Missile hit: " + collision.gameObject.name);
-        Instantiate(explosion, transform.position, Quaternion.identity);
+        GameObject explode = Instantiate(explosion, transform.position, Quaternion.identity);
+        explode.GetComponent<NetworkObject>().Spawn();
         Destroy(gameObject);
     }
 }

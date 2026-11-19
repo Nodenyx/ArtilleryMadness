@@ -1,6 +1,4 @@
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Explosion : MonoBehaviour
 {
@@ -25,7 +23,6 @@ public class Explosion : MonoBehaviour
     {
         if((timeLeft -= Time.deltaTime) <= 0f)
             Destroy(gameObject);
-
 
         float scale = explosionSize * (timeLeft / lifeTime);
         transform.localScale = new Vector3(scale, scale, scale);
@@ -54,7 +51,7 @@ public class Explosion : MonoBehaviour
         }
         else if(other.CompareTag("Missile"))
         {
-            other.GetComponent<Missile>().Explode();
+            other.GetComponent<Missile>().ExplodeRpc();
         }
     }
 }
