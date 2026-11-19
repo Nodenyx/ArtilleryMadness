@@ -431,6 +431,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankStats
   tankHealth: 100
+  tankMovement: {fileID: 4144777182572258755}
 --- !u!114 &2829789069987137503
 MonoBehaviour:
   m_ObjectHideFlags: 0
